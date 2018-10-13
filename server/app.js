@@ -18,20 +18,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(require('./middleware/cookieParser'));
-// app.use(Auth.createSession);
+app.use(Auth.createSession);
 
 
-app.get('/',
+app.get('/', Auth.verifySession,
   (req, res) => {
     res.render('index');
   });
 
-app.get('/create',
+app.get('/create', Auth.verifySession,
   (req, res) => {
     res.render('index');
   });
 
-app.get('/links',
+app.get('/links', Auth.verifySession,
   (req, res, next) => {
     models.Links.getAll()
       .then(links => {
@@ -42,7 +42,7 @@ app.get('/links',
       });
   });
 
-app.post('/links',
+app.post('/links', Auth.verifySession,
   (req, res, next) => {
     var url = req.body.url;
     if (!models.Links.isValidUrl(url)) {
@@ -93,18 +93,19 @@ app.post('/login',
     let attempted = req.body.password;
 
     return models.Users.get({ username })
-      .then(user=> {
+      .then(user => {
+
         let password = user.password;
         let salt = user.salt;
-        if (user) { return models.Users.compare(attempted, password, salt); }
-      })
-      .then(bool => {
-        if (bool === false) {
-          res.redirect('/login');
-        } else {
-          res.redirect('/');
-          next();
+
+        if (!user || !models.Users.compare(attempted, password, salt)) {
+          throw new Error ('wrong login info');
         }
+        return models.Sessions.update({ hash: req.session.hash }, { userId: user.id });
+      })
+      .then(()=>{
+        res.redirect('/');
+        // next();
       })
       .error(error => {
         res.status(500).send(error);
@@ -129,15 +130,19 @@ app.post('/signup',
     let username = req.body.username;
     let password = req.body.password;
 
-    return models.Users.get({username: username})
+    return models.Users.get({ username })
       .then(user => {
-        if (user === undefined) {
-          models.Users.create({username, password});
-          res.redirect('/');
-          next();
-        } else {
-          res.direct('/signup'); // this should send to /login  NOT to /signup!!!
+        if (user) {
+        // user already exists; throw user to catch and redirect
+          throw user;
         }
+        return models.Users.create({ username, password });
+      })
+      .then(results => {
+        return models.Sessions.update({ hash: req.session.hash }, { userId: results.insertId });
+      })
+      .then(() => {
+        res.redirect('/');
       })
       .error(error => {
         res.status(500).send(error);
