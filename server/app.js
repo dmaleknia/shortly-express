@@ -146,18 +146,13 @@ app.post('/login',
       .then(user=> {
         let password = user.password;
         let salt = user.salt;
-        // console.log(`Here are values attempted: ${attempted}, password: ${password}, salt: ${salt}`);
-        // console.log(`Here is the return: ${models.Users.compare(attempted, password, salt)}`);
         return models.Users.compare(attempted, password, salt);
       })
       .then(bool => {
         if (bool === false) {
           res.redirect('/login');
         } else {
-          // if the password is correct
           res.redirect('/');
-          // if the password is incorrect
-          // res.redirect('/login');
         }
       })
       .error(error => {
