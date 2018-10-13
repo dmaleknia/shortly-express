@@ -9,7 +9,7 @@ const parseCookies = (req, res, next) => {
 
   var obj = {};
 
-  if (cookieString[0] !== '')  {
+  if (cookieString[0] !== '') {
 
     cookieString.forEach(el => {
       var sub = el.split('=');
