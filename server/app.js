@@ -88,37 +88,37 @@ app.get('/signup',
 // if user is not in the database
 // create a new user
 
-app.post('/signup',
-  (req, res, next) => {
+// app.post('/signup',
+//   (req, res, next) => {
 
-    console.log(req.body);
+//     console.log(req.body);
 
-    var username = req.body.username;
-    var password = req.body.password;
+//     var username = req.body.username;
+//     var password = req.body.password;
 
-    // (async()=>{
-    //   const a = await models.Users.get({username: username});
-    //   const b =
-    //   console.log(a);
-    // })
-    models.Users.get({username: username})
-      .then(user => {
-        console.log('user', user);
-        if (user !== undefined) {
-          throw new Error('ER_DUP_ENTRY');
-          console.log('USER EXISTS procede to login');
-          //send user to login
-        } else {
-          return models.Users.create({username, password});
-        }
-      })
-      .error(error => {
-        res.status(500).send(error);
-      })
-      .catch(() => {
-        res.redirect('/login');
-      });
-  });
+//     // (async()=>{
+//     //   const a = await models.Users.get({username: username});
+//     //   const b =
+//     //   console.log(a);
+//     // })
+//     models.Users.getAll({username: username})
+//       .then(user => {
+//         console.log('user', user);
+//         if (user !== undefined) {
+//           throw new Error('ER_DUP_ENTRY');
+//           console.log('USER EXISTS procede to login');
+//           //send user to login
+//         } else {
+//           return models.Users.create({username, password});
+//         }
+//       })
+//       .error(error => {
+//         res.status(500).send(error);
+//       })
+//       .catch(() => {
+//         res.redirect('/login');
+//       });
+//   });
 
 
 app.get('/login',
