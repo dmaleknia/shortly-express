@@ -5,8 +5,7 @@ const database = 'shortly';
 
 const connection = mysql.createConnection({
   user: 'root',
-  password: '',
-  database: 'shortly'
+  password: ''
 });
 
 const db = Promise.promisifyAll(connection, { multiArgs: true });
@@ -15,6 +14,7 @@ db.connectAsync()
   .then(() => console.log(`Connected to ${database} database as ID ${db.threadId}`))
   .then(() => db.queryAsync(`CREATE DATABASE IF NOT EXISTS ${database}`))
   .then(() => db.queryAsync(`USE ${database}`))
-  .then(() => createTables(db));
+  .then(() => createTables(db))
+  .catch((error)=> console.log('error', error));
 
 module.exports = db;
