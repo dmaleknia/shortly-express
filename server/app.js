@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const Users = require('./models/user');
 
 const app = express();
 
@@ -16,69 +17,114 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 
+app.get('/',
+  (req, res) => {
+    res.render('index');
+  });
 
-app.get('/', 
-(req, res) => {
-  res.render('index');
-});
+app.get('/create',
+  (req, res) => {
+    res.render('index');
+  });
 
-app.get('/create', 
-(req, res) => {
-  res.render('index');
-});
-
-app.get('/links', 
-(req, res, next) => {
-  models.Links.getAll()
-    .then(links => {
-      res.status(200).send(links);
-    })
-    .error(error => {
-      res.status(500).send(error);
-    });
-});
-
-app.post('/links', 
-(req, res, next) => {
-  var url = req.body.url;
-  if (!models.Links.isValidUrl(url)) {
-    // send back a 404 if link is not valid
-    return res.sendStatus(404);
-  }
-
-  return models.Links.get({ url })
-    .then(link => {
-      if (link) {
-        throw link;
-      }
-      return models.Links.getUrlTitle(url);
-    })
-    .then(title => {
-      return models.Links.create({
-        url: url,
-        title: title,
-        baseUrl: req.headers.origin
+app.get('/links',
+  (req, res, next) => {
+    models.Links.getAll()
+      .then(links => {
+        res.status(200).send(links);
+      })
+      .error(error => {
+        res.status(500).send(error);
       });
-    })
-    .then(results => {
-      return models.Links.get({ id: results.insertId });
-    })
-    .then(link => {
-      throw link;
-    })
-    .error(error => {
-      res.status(500).send(error);
-    })
-    .catch(link => {
-      res.status(200).send(link);
-    });
-});
+  });
+
+app.post('/links',
+  (req, res, next) => {
+    var url = req.body.url;
+    if (!models.Links.isValidUrl(url)) {
+    // send back a 404 if link is not valid
+      return res.sendStatus(404);
+    }
+
+    return models.Links.get({ url })
+      .then(link => {
+        if (link) {
+          throw link;
+        }
+        return models.Links.getUrlTitle(url);
+      })
+      .then(title => {
+        return models.Links.create({
+          url: url,
+          title: title,
+          baseUrl: req.headers.origin
+        });
+      })
+      .then(results => {
+        return models.Links.get({ id: results.insertId });
+      })
+      .then(link => {
+        throw link;
+      })
+      .error(error => {
+        res.status(500).send(error);
+      })
+      .catch(link => {
+        res.status(200).send(link);
+      });
+  });
 
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
 
+app.get('/signup',
+  (req, res) => {
+    res.render('signup');
+  });
 
+
+// verify that the user is not in the database
+// if user is not in the database
+// create a new user
+
+app.post('/signup',
+  (req, res, next) => {
+
+    console.log(req.body);
+
+    var username = req.body.username;
+    var password = req.body.password;
+
+    // (async()=>{
+    //   const a = await models.Users.get({username: username});
+    //   const b =
+    //   console.log(a);
+    // })
+    models.Users.get({username: username})
+      .then(user => {
+        console.log('user', user);
+        if (user !== undefined) {
+          throw new Error('ER_DUP_ENTRY');
+          console.log('USER EXISTS procede to login');
+          //send user to login
+        } else {
+          return models.Users.create({username, password});
+        }
+      })
+      .error(error => {
+        res.status(500).send(error);
+      })
+      .catch(() => {
+        res.redirect('/login');
+      });
+  });
+
+
+app.get('/login',
+  (req, res) => {
+    res.render('login');
+  });
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
