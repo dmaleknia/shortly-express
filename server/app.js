@@ -82,77 +82,21 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
-app.get('/signup',
-  (req, res) => {
-    res.render('signup');
-  });
-
-
-// verify that the user is not in the database
-// if user is not in the database
-// create a new user
-
-app.post('/signup',
-  (req, res) => {
-
-    let username = req.body.username;
-    let password = req.body.password;
-
-    models.Users.get({username: username})
-      .then(user => {
-        if (user === undefined) {
-          models.Users.create({username, password});
-          res.redirect('/');
-        } else {
-          res.direct('/signup'); // this should send to /login  NOT to /signup!!!
-        }
-      })
-      .error(error => {
-        throw new Error('ER_DUP_ENTRY');
-      })
-      .catch(() => {
-        res.redirect('/signup'); // this should send to /login  NOT to /signup!!!
-      });
-
-  });
-
-
 app.get('/login',
   (req, res) => {
     res.render('login');
   });
 
 app.post('/login',
-  (req, res) => {
+  (req, res, next) => {
     let username = req.body.username;
     let attempted = req.body.password;
 
-    // console.log(req.session, 'sessions----------------')
-
-    // the salt is stored in the database; we can find it based on the username
-    // verify if the username is valid
-    // we add the salt to both passwords (the one on the database and the one submitted by user)
-    // compare these values
-    // if they're the same, log the user in, redirect them to the /
-    // if they're not the same, redirect to /login
-
-    /**
-   * Compares a password attempt with the previously stored password and salt.
-   * @param {string} attempted - The attempted password.
-   * @param {string} password - The hashed password from when the user signed up.
-   * @param {string} salt - The salt generated when the user signed up.
-   * @returns {boolean} A boolean indicating if the attempted password was correct.
-   */
-    // compare(attempted, password, salt) {
-    //   return utils.compareHash(attempted, password, salt);
-    // }
-
-
-    models.Users.get({username: username})
+    return models.Users.get({ username })
       .then(user=> {
         let password = user.password;
         let salt = user.salt;
-        return models.Users.compare(attempted, password, salt);
+        if (user) {return models.Users.compare(attempted, password, salt);}
       })
       .then(bool => {
         if (bool === false) {
@@ -162,13 +106,46 @@ app.post('/login',
         }
       })
       .error(error => {
-        throw new Error('USER NOT FOUND');
-        res.redirect('/login');
+        res.status(500).send(error);
       })
       .catch(() => {
         res.redirect('/login');
       });
   });
+
+app.get('/signup',
+  (req, res) => {
+    res.render('signup');
+  });
+
+// verify that the user is not in the database
+// if user is not in the database
+// create a new user
+
+app.post('/signup',
+  (req, res, next) => {
+
+    let username = req.body.username;
+    let password = req.body.password;
+
+    return models.Users.get({username: username})
+      .then(user => {
+        if (user === undefined) {
+          models.Users.create({username, password});
+          res.redirect('/');
+        } else {
+          res.direct('/signup'); // this should send to /login  NOT to /signup!!!
+        }
+      })
+      .error(error => {
+        res.status(500).send(error);
+      })
+      .catch(() => {
+        res.redirect('/signup'); // this should send to /login  NOT to /signup!!!
+      });
+
+  });
+
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail

@@ -10,19 +10,16 @@ const parseCookies = (req, res, next) => {
   var obj = {};
 
   if (cookieString[0] !== '') {
-
     cookieString.forEach(el => {
       var sub = el.split('=');
       let key = sub[0];
       let value = sub[1];
       obj[key] = value;
     });
-
   }
 
   req.cookies = obj;
   next();
-
 };
 
 module.exports = parseCookies;
