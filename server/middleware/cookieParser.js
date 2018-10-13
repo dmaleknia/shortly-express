@@ -21,14 +21,8 @@ const parseCookies = (req, res, next) => {
   }
 
   req.cookies = obj;
-  console.log(obj);
   next();
 
 };
-
-
-
-
-
 
 module.exports = parseCookies;
