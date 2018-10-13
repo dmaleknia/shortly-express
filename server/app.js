@@ -153,6 +153,17 @@ app.post('/signup',
 
   });
 
+app.get('/logout', (req, res, next) => {
+
+  return models.Sessions.delete({ hash: req.cookies.shortlyid })
+    .then(() => {
+      res.clearCookie('shortlyid');
+      res.redirect('/login');
+    })
+    .error(error => {
+      res.status(500).send(error);
+    });
+});
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
