@@ -96,7 +96,7 @@ app.post('/login',
       .then(user=> {
         let password = user.password;
         let salt = user.salt;
-        if (user) {return models.Users.compare(attempted, password, salt);}
+        if (user) { return models.Users.compare(attempted, password, salt); }
       })
       .then(bool => {
         if (bool === false) {
