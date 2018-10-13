@@ -5,21 +5,20 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
-const Users = require('./models/user');
 
-const parseCookies = require('./middleware/auth'); // do we need this here
+const Users = require('./models/user');
 
 const app = express();
 
 app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
 app.use(partials());
-
-// app.use(parseCookies());
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+
+app.use(require('./middleware/cookieParser'));
+// app.use(Auth.createSession);
 
 
 app.get('/',
