@@ -103,6 +103,7 @@ app.post('/login',
           res.redirect('/login');
         } else {
           res.redirect('/');
+          next();
         }
       })
       .error(error => {
@@ -133,6 +134,7 @@ app.post('/signup',
         if (user === undefined) {
           models.Users.create({username, password});
           res.redirect('/');
+          next();
         } else {
           res.direct('/signup'); // this should send to /login  NOT to /signup!!!
         }
