@@ -91,30 +91,46 @@ app.get('/signup',
 app.post('/signup',
   (req, res, next) => {
 
-    console.log(req.body);
+    console.log(req.body, '<------------------request body');
 
     var username = req.body.username;
     var password = req.body.password;
 
     // models.Users.create({username, password});
-    console.log(models.Users.get({username: username}));
+    //console.log(models.Users.get({username: username}));
+
+    // models.Users.create({username, password});
+    // res.end();
 
     models.Users.get({username: username})
       .then(user => {
-        console.log('user', user.password);
-        if (user !== undefined) {
-          throw new Error('ER_DUP_ENTRY');
-          console.log('USER EXISTS procede to login');
-          //send user to login
+        // console.log(JSON.stringify(user), 'stringy thingy');
+
+        if (user === undefined) {
+          console.log("ITS UNDEFINED - OK to ADD");
+          models.Users.create({username, password});
+          res.redirect('/');
         } else {
-          return models.Users.create({username, password});
+          res.direct('/signup');
         }
+
+
+        // if (user !== undefined) {
+        //   throw new Error('ER_DUP_ENTRY');
+        //   console.log('USER EXISTS please login');
+        //   //send user to login
+        // } else {
+        //   // models.Users.create({username, password});
+        //   // res.end();
+        // }
       })
       .error(error => {
-        res.status(500).send(error);
+        throw new Error('ER_DUP_ENTRY');
+        res.redirect('/signup');
+        // res.status(500).send(error);
       })
       .catch(() => {
-        res.redirect('/login');
+        res.redirect('/signup');
       });
   });
 
