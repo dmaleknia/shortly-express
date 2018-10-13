@@ -89,55 +89,84 @@ app.get('/signup',
 // create a new user
 
 app.post('/signup',
-  (req, res, next) => {
+  (req, res) => {
 
-    console.log(req.body, '<------------------request body');
-
-    var username = req.body.username;
-    var password = req.body.password;
-
-    // models.Users.create({username, password});
-    //console.log(models.Users.get({username: username}));
-
-    // models.Users.create({username, password});
-    // res.end();
+    let username = req.body.username;
+    let password = req.body.password;
 
     models.Users.get({username: username})
       .then(user => {
-        // console.log(JSON.stringify(user), 'stringy thingy');
-
         if (user === undefined) {
-          console.log("ITS UNDEFINED - OK to ADD");
           models.Users.create({username, password});
           res.redirect('/');
         } else {
-          res.direct('/signup');
+          res.direct('/signup'); // this should send to /login  NOT to /signup!!!
         }
-
-
-        // if (user !== undefined) {
-        //   throw new Error('ER_DUP_ENTRY');
-        //   console.log('USER EXISTS please login');
-        //   //send user to login
-        // } else {
-        //   // models.Users.create({username, password});
-        //   // res.end();
-        // }
       })
       .error(error => {
         throw new Error('ER_DUP_ENTRY');
-        res.redirect('/signup');
-        // res.status(500).send(error);
       })
       .catch(() => {
-        res.redirect('/signup');
+        res.redirect('/signup'); // this should send to /login  NOT to /signup!!!
       });
+
   });
 
 
 app.get('/login',
   (req, res) => {
     res.render('login');
+  });
+
+app.post('/login',
+  (req, res) => {
+    let username = req.body.username;
+    let attempted = req.body.password;
+
+    // the salt is stored in the database; we can find it based on the username
+    // verify if the username is valid
+    // we add the salt to both passwords (the one on the database and the one submitted by user)
+    // compare these values
+    // if they're the same, log the user in, redirect them to the /
+    // if they're not the same, redirect to /login
+
+    /**
+   * Compares a password attempt with the previously stored password and salt.
+   * @param {string} attempted - The attempted password.
+   * @param {string} password - The hashed password from when the user signed up.
+   * @param {string} salt - The salt generated when the user signed up.
+   * @returns {boolean} A boolean indicating if the attempted password was correct.
+   */
+    // compare(attempted, password, salt) {
+    //   return utils.compareHash(attempted, password, salt);
+    // }
+
+
+    models.Users.get({username: username})
+      .then(user=> {
+        let password = user.password;
+        let salt = user.salt;
+        // console.log(`Here are values attempted: ${attempted}, password: ${password}, salt: ${salt}`);
+        // console.log(`Here is the return: ${models.Users.compare(attempted, password, salt)}`);
+        return models.Users.compare(attempted, password, salt);
+      })
+      .then(bool => {
+        if (bool === false) {
+          res.redirect('/login');
+        } else {
+          // if the password is correct
+          res.redirect('/');
+          // if the password is incorrect
+          // res.redirect('/login');
+        }
+      })
+      .error(error => {
+        throw new Error('USER NOT FOUND');
+        res.redirect('/login');
+      })
+      .catch(() => {
+        res.redirect('/login');
+      });
   });
 
 /************************************************************/
