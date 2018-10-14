@@ -165,7 +165,7 @@ app.get('/logout', (req, res, next) => {
       res.status(500).send(error);
     })
     .catch(() => {
-      res.redirect('/login'); // this should send to /login  NOT to /signup!!!
+      res.redirect('/login');
     });
 });
 
