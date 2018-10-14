@@ -152,18 +152,23 @@ app.post('/signup',
       });
 
   });
-
 app.get('/logout', (req, res, next) => {
 
-  return models.Sessions.delete({ hash: req.cookies.shortlyid })
+  let hash = req.cookies.shortlyid;
+
+  return models.Sessions.delete({ hash })
     .then(() => {
       res.clearCookie('shortlyid');
-      res.redirect('/login');
+      next();
     })
     .error(error => {
       res.status(500).send(error);
+    })
+    .catch(() => {
+      res.redirect('/login'); // this should send to /login  NOT to /signup!!!
     });
 });
+
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
